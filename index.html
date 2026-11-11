@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maxton — Zarah Rizvi Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        brand: { blue:'#3B82F6', purple:'#8B5CF6', pink:'#F43F5E', green:'#10B981', dark:'#0B1120', card:'#151E2E', card2:'#1E293B', light:'#F1F5F9', cardLight:'#FFFFFF' }
+                    },
+                    boxShadow: {
+                        'heading': '0 4px 20px -2px rgba(59,130,246,0.5)',
+                        'heading-dark': '0 4px 25px -2px rgba(139,92,246,0.6)',
+                        'glass': '0 8px 32px 0 rgba(31,38,135,0.37)',
+                        'glow': '0 0 25px rgba(59,130,246,0.35)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(35px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeInLeft { from{opacity:0;transform:translateX(-35px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes fadeInRight { from{opacity:0;transform:translateX(35px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+        @keyframes pulseGlow { 0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0.4)} 50%{box-shadow:0 0 0 12px rgba(59,130,246,0)} }
+        @keyframes shimmer { 0%{background-position:-500px 0} 100%{background-position:500px 0} }
+
+        .animate-fade-up { animation: fadeInUp .8s cubic-bezier(.16,1,.3,1) forwards; opacity:0; }
+        .animate-fade-left { animation: fadeInLeft .8s cubic-bezier(.16,1,.3,1) forwards; opacity:0; }
+        .animate-fade-right { animation: fadeInRight .8s cubic-bezier(.16,1,.3,1) forwards; opacity:0; }
+        .delay-100{animation-delay:.1s}.delay-200{animation-delay:.2s}.delay-300{animation-delay:.3s}.delay-400{animation-delay:.4s}.delay-500{animation-delay:.5s}.delay-600{animation-delay:.6s}.delay-700{animation-delay:.7s}
+
+        .heading-shadow { text-shadow: 0 4px 15px rgba(59,130,246,.45), 0 2px 5px rgba(0,0,0,.1); }
+        .dark .heading-shadow { text-shadow: 0 4px 20px rgba(139,92,246,.65), 0 2px 5px rgba(0,0,0,.6); }
+
+        * { transition: background-color .4s ease, color .4s ease, border-color .4s ease, box-shadow .4s ease; }
+        ::-webkit-scrollbar { width:7px; height:7px }
+        ::-webkit-scrollbar-track { background:transparent }
+        ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:8px }
+        .dark ::-webkit-scrollbar-thumb { background:#334155 }
+
+        .hover-card { transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s ease, border-color .35s ease; }
+        .hover-card:hover { transform: translateY(-6px); box-shadow: 0 25px 30px -10px rgba(0,0,0,.12); border-color: rgba(59,130,246,.4); }
+        .dark .hover-card:hover { box-shadow: 0 25px 35px -10px rgba(0,0,0,.55); border-color: rgba(139,92,246,.5); }
+
+        .float-anim { animation: float 5s ease-in-out infinite; }
+        .pulse-glow { animation: pulseGlow 2.5s infinite; }
+
+        /* Sidebar link */
+        .side-link { position:relative; }
+        .side-link::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%) scaleY(0); width:3px; height:60%; background:#3B82F6; border-radius:0 4px 4px 0; transition:transform .3s ease; }
+        .side-link:hover::before, .side-link.active::before { transform:translateY(-50%) scaleY(1); }
+
+        /* Toggle */
+        .toggle-checkbox:checked { right:0; border-color:#3B82F6 }
+        .toggle-checkbox:checked + .toggle-label { background-color:#3B82F6 }
+        .toggle-checkbox { transition: all .3s cubic-bezier(.16,1,.3,1); }
+
+        /* Progress bar animated fill */
+        .bar-fill { width:0; transition: width 1.5s cubic-bezier(.16,1,.3,1) .3s; }
+        
+        /* Table row hover */
+        .table-row:hover { background: rgba(59,130,246,.05); }
+        .dark .table-row:hover { background: rgba(139,92,246,.08); }
+
+        /* Logo shine */
+        .logo-shine { background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.4) 50%, transparent 70%); background-size: 500px 100%; animation: shimmer 3s infinite linear; }
+    </style>
+</head>
+
+<body class="bg-brand-light dark:bg-brand-dark text-slate-800 dark:text-slate-200 font-sans antialiased overflow-x-hidden">
+
+<div class="flex h-screen overflow-hidden">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="w-72 bg-white dark:bg-brand-card border-r border-slate-200 dark:border-slate-800 flex-shrink-0 hidden lg:flex flex-col animate-fade-left">
+        <!-- LOGO -->
+        <div class="h-20 flex items-center px-6 border-b border-slate-200 dark:border-slate-800">
+            <a href="#" class="flex items-center space-x-3 group">
+                <div class="relative w-11 h-11 float-anim">
+                    <svg viewBox="0 0 48 48" class="w-full h-full drop-shadow-lg group-hover:scale-105 transition-transform duration-300">
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#3B82F6"/>
+                                <stop offset="100%" stop-color="#8B5CF6"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M24 3 L42 14 L42 34 L24 45 L6 34 L6 14 Z" fill="url(#logoGrad)" opacity="0.15"/>
+                        <path d="M24 3 L42 14 L42 34 L24 45 L6 34 L6 14 Z" fill="none" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M16 16 L16 32 M32 16 L32 32 M16 16 L24 26 L32 16" stroke="url(#logoGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                    <div class="absolute inset-0 logo-shine rounded-full pointer-events-none"></div>
+                </div>
+                <div>
+                    <span class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-brand-blue to-brand-purple bg-clip-text text-transparent">Maxton</span>
+                    <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.2em] -mt-1">Admin Suite</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- NAV -->
+        <nav class="flex-1 overflow-y-auto py-5 px-4 space-y-1">
+            <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Main Menu</p>
+            
+            <a href="#" class="side-link active flex items-center justify-between px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-brand-blue/10 text-brand-blue font-semibold">
+                <span class="flex items-center space-x-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard</span>
+                </span>
+            </a>
+
+            <a href="#" class="side-link flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <span class="flex items-center space-x-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    <span>E-Commerce</span>
+                </span>
+                <span class="text-[10px] font-bold bg-brand-pink/10 text-brand-pink px-2 py-0.5 rounded-full">New</span>
+            </a>
+
+            <a href="#" class="side-link flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <span class="flex items-center space-x-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    <span>Widgets</span>
+                </span>
+            </a>
+
+            <p class="px-3 pt-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">UI Elements</p>
+
+            <a href="#" class="side-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                <span>Cards</span>
+            </a>
+
+            <a href="#" class="side-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                <span>Components</span>
+            </a>
+
+            <a href="#" class="side-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <span>Forms & Tables</span>
+            </a>
+
+            <a href="#" class="side-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+                <span>Tables</span>
+            </a>
+
+            <p class="px-3 pt-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Pages</p>
+
+            <a href="#" class="side-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <span>Authentication</span>
+            </a>
+
+            <a href="#" class="side-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span>User Profile</span>
+            </a>
+        </nav>
+
+        <!-- Upgrade Card -->
+        <div class="p-4">
+            <div class="bg-gradient-to-br from-brand-blue to-brand-purple rounded-xl p-4 text-white relative overflow-hidden pulse-glow">
+                <div class="absolute -top-6 -right-6 w-20 h-20 bg-white/20 rounded-full blur-xl"></div>
+                <p class="font-bold text-sm">Upgrade to Pro</p>
+                <p class="text-xs text-blue-100 mt-1">Unlock advanced analytics & reports.</p>
+                <button class="mt-3 w-full bg-white/20 hover:bg-white/30 backdrop-blur text-white text-xs font-bold py-2 rounded-lg transition">Upgrade Now</button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ================= MAIN ================= -->
+    <main class="flex-1 flex flex-col overflow-y-auto">
+
+        <!-- HEADER -->
+        <header class="h-20 bg-white/80 dark:bg-brand-card/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 sticky top-0 z-30 animate-fade-up">
+            <div class="flex items-center space-x-4">
+                <!-- Mobile logo -->
+                <div class="lg:hidden flex items-center space-x-2">
+                    <svg viewBox="0 0 48 48" class="w-8 h-8">
+                        <defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs>
+                        <path d="M24 3 L42 14 L42 34 L24 45 L6 34 L6 14 Z" fill="none" stroke="url(#lg2)" stroke-width="3"/>
+                        <path d="M16 16 L16 32 M32 16 L32 32 M16 16 L24 26 L32 16" stroke="url(#lg2)" stroke-width="3" fill="none"/>
+                    </svg>
+                    <span class="font-extrabold bg-gradient-to-r from-brand-blue to-brand-purple bg-clip-text text-transparent">Maxton</span>
+                </div>
+
+                <div class="relative hidden sm:block">
+                    <input type="text" placeholder="Search anything..." class="pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border-none focus:ring-2 focus:ring-brand-blue outline-none w-64 text-sm">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4 sm:space-x-6">
+                <!-- Theme Toggle -->
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <div class="relative inline-block w-10 align-middle select-none">
+                        <input type="checkbox" id="theme-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10" style="top:2px; left:2px;"/>
+                        <label for="theme-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 dark:bg-slate-600 cursor-pointer"></label>
+                    </div>
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                </div>
+
+                <!-- Notifications -->
+                <button class="relative w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-brand-pink rounded-full pulse-glow"></span>
+                </button>
+
+                <!-- Messages -->
+                <button class="relative w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition hidden sm:flex">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </button>
+
+                <!-- Profile -->
+                <div class="flex items-center space-x-3 pl-3 border-l border-slate-200 dark:border-slate-700">
+                    <div class="relative">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-brand-blue to-brand-purple flex items-center justify-center text-white font-bold shadow-lg">ZR</div>
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-brand-card rounded-full"></span>
+                    </div>
+                    <div class="hidden md:block">
+                        <p class="text-sm font-bold leading-tight">Zarah Rizvi</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Super Admin</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD BODY -->
+        <div class="p-6 space-y-6 max-w-[1600px] mx-auto w-full">
+
+            <!-- Page Title + Quick Actions -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-up delay-100">
+                <div>
+                    <h1 class="text-3xl font-extrabold heading-shadow">Dashboard Overview</h1>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Welcome back, <span class="font-semibold text-brand-blue">Zarah Rizvi</span> Here's what's happening today.</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button class="px-4 py-2.5 rounded-xl bg-white dark:bg-brand-card2 border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:border-brand-blue transition hover-card">Export Report</button>
+                    <button class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-blue to-brand-purple text-white text-sm font-semibold shadow-lg hover:shadow-glow transition hover-card">+ Add New</button>
+                </div>
+            </div>
+
+            <!-- WELCOME HERO CARD -->
+            <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 dark:from-brand-card dark:via-slate-800 dark:to-slate-900 rounded-2xl p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between relative overflow-hidden shadow-2xl animate-fade-up delay-200 hover-card">
+                <div class="absolute top-0 right-0 w-72 h-72 bg-white opacity-10 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                <div class="absolute bottom-0 left-0 w-56 h-56 bg-brand-purple opacity-20 rounded-full blur-2xl -ml-10 -mb-10"></div>
+
+                <div class="z-10 text-white mb-6 lg:mb-0">
+                    <div class="flex items-center space-x-4 mb-5">
+                        <div class="w-16 h-16 rounded-full border-2 border-white/50 p-1">
+                            <img src="https://ui-avatars.com/api/?name=Zarah+Rizvi&background=random&color=fff&size=128" alt="Zarah Rizvi" class="w-full h-full rounded-full object-cover">
+                        </div>
+                        <div>
+                            <p class="text-blue-200 text-sm">Good Morning</p>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold leading-tight">Zarah Rizvi!</h2>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 mt-6">
+                        <div>
+                            <p class="text-xs text-blue-200 uppercase tracking-wider">Today's Sales</p>
+                            <p class="text-2xl font-extrabold mt-1">$65.4K</p>
+                            <p class="text-xs text-green-300 mt-1">▲ 12.5% vs yesterday</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-blue-200 uppercase tracking-wider">Growth Rate</p>
+                            <p class="text-2xl font-extrabold mt-1">78.4%</p>
+                            <p class="text-xs text-green-300 mt-1">▲ 5.2% this week</p>
+                        </div>
+                        <div class="hidden sm:block">
+                            <p class="text-xs text-blue-200 uppercase tracking-wider">New Orders</p>
+                            <p class="text-2xl font-extrabold mt-1">1,254</p>
+                            <p class="text-xs text-green-300 mt-1">▲ 8.1% today</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAT CARDS ROW -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <!-- Active Users -->
+                <div class="bg-white dark:bg-brand-card p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-fade-up delay-300 hover-card">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-brand-blue/10 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </div>
+                        <span class="text-xs font-bold text-green-500 bg-green-50 dark:bg-green-500/10 px-2 py-1 rounded">+12%</span>
+                    </div>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Active Users</p>
+                    <h3 class="text-2xl font-extrabold mt-1">42.5K</h3>
+                    <div class="mt-4 w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
+                        <div class="bar-fill bg-gradient-to-r from-brand-blue to-brand-purple h-2 rounded-full" data-width="78%"></div>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-2">78% of target reached</p>
+                </div>
+
+                <!-- Total Users -->
+                <div class="bg-white dark:bg-brand-card p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-fade-up delay-400 hover-card">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-11 h-11 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-brand-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        </div>
+                        <span class="text-xs font-bold text-green-500 bg-green-50 dark:bg-green-500/10 px-2 py-1 rounded">+8.4%</span>
+                    </div>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Users</p>
+                    <h3 class="text-2xl font-extrabold mt-1">97.4K</h3>
+                    <div class="w-full h-16 mt-2">
+                        <canvas id="lineChartTop"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">12.5% from last month</p>
+                </div>
+
+                <!-- Total Clicks -->
+                <div class="bg-white dark:bg-brand-card p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-fade-up delay-500 hover-card">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-brand-purple/10 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-brand-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+                        </div>
+                        <span class="text-xs font-bold text-green-500 bg-green-50 dark:bg-green-500/10 px-2 py-1 rounded">+18.2%</span>
+                    </div>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Clicks</p>
+                    <h3 class="text-2xl font-extrabold mt-1">82.7K</h3>
+                    <div class="w-full h-16 mt-2">
+                        <canvas id="barChartSmall"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">12.5% from last month</p>
+                </div>
+
+                <!-- Total Views -->
+                <div class="bg-white dark:bg-brand-card p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-fade-up delay-600 hover-card">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-11 h-11 rounded-xl bg-pink-50 dark:bg-brand-pink/10 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-brand-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        </div>
+                        <span class="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded">-2.1%</span>
+                    </div>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Views</p>
+                    <h3 class="text-2xl font-extrabold mt-1">68.4K</h3>
+                    <div class="w-full h-16 mt-2">
+                        <canvas id="lineChartBottom"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">35K users increased</p>
+                </div>
+            </div>
+
+            <!-- BIG CHARTS ROW -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Monthly Revenue -->
+                <div class="bg-white dark:bg-brand-card p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-fade-up delay-400 hover-card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-lg heading-shadow">Monthly Revenue</h3>
+                        <select class="text-xs bg-slate-100 dark:bg-slate-800 border-none rounded-lg px-2 py-1.5 outline-none">
+                            <option>2024</option>
+                            <option>2023</option>
+                        </select>
+                    </div>
+                    <div class="w-full h-64"><canvas id="revenueChart"></canvas></div>
+                </div>
+
+                <!-- Device Type -->
+                <div class="bg-white dark:bg-brand-card p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-fade-up delay-500 hover-card flex flex-col">
+                    <h3 class="font-bold text-lg mb-2 heading-shadow">Device Type</h3>
+                    <div class="relative flex-1 flex justify-center items-center min-h-[260px]">
+                        <canvas id="deviceChart"></canvas>
+                        <div class="absolute text-center">
+                            <p class="text-3xl font-extrabold">68%</p>
+                            <p class="text-xs text-slate-500">Total Views</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Sales Summary -->
+                <div class="bg-white dark:bg-brand-card p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-fade-up delay-600 hover-card flex flex-col justify-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-brand-blue opacity-5 rounded-full blur-2xl"></div>
+                    <div class="z-10">
+                        <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mb-2">Total Sales This Year</p>
+                        <h2 class="text-5xl font-extrabold tracking-tight heading-shadow">85,247</h2>
+                        <div class="flex items-center mt-4 space-x-2">
+                            <span class="text-sm font-bold text-green-500 bg-green-50 dark:bg-green-500/10 px-2 py-1 rounded">+23.7%</span>
+                            <span class="text-sm text-slate-400">vs last year</span>
+                        </div>
+                        <div class="mt-8">
+                            <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Target</span><span>75%</span></div>
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3">
+                                <div class="bar-fill bg-gradient-to-r from-brand-blue to-brand-purple h-3 rounded-full" data-width="75%"></div>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex items-center space-x-3">
+                            <div class="flex -space-x-2">
+                                <div class="w-8 h-8 rounded-full bg-blue-400 border-2 border-white dark:border-brand-card flex items-center justify-center text-white text-xs font-bold">A</div>
+                                <div class="w-8 h-8 rounded-full bg-purple-400 border-2 border-white dark:border-brand-card flex items-center justify-center text-white text-xs font-bold">B</div>
+                                <div class="w-8 h-8 rounded-full bg-pink-400 border-2 border-white dark:border-brand-card flex items-center justify-center text-white text-xs font-bold">C</div>
+                            </div>
+                            <p class="text-xs text-slate-400">+12 team members active</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETAILED CONTENT ROW: Transactions + Top Products -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Recent Transactions Table -->
+                <div class="lg:col-span-2 bg-white dark:bg-brand-card rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-fade-up delay-500 hover-card overflow-hidden">
+                    <div class="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800">
+                        <h3 class="font-bold text-lg heading-shadow">Recent Transactions</h3>
+                        <a href="#" class="text-sm font-semibold text-brand-blue hover:underline">View All</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th class="text-left px-6 py-3 font-bold">Customer</th>
+                                    <th class="text-left px-6 py-3 font-bold">Order ID</th>
+                                    <th class="text-left px-6 py-3 font-bold">Amount</th>
+                                    <th class="text-left px-6 py-3 font-bold">Status</th>
+                                    <th class="text-left px-6 py-3 font-bold">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tr class="table-row">
+                                    <td class="px-6 py-4 flex items-center space-x-3">
+                                        <div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-500/20 text-brand-blue flex items-center justify-center font-bold text-xs">AM</div>
+                                        <span class="font-semibold">Ali Mehmood</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">#ORD-1024</td>
+                                    <td class="px-6 py-4 font-bold">$1,250</td>
+                                    <td class="px-6 py-4"><span class="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/10 px-2 py-1 rounded-full">Completed</span></td>
+                                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">Oct 24, 2024</td>
+                                </tr>
+                                <tr class="table-row">
+                                    <td class="px-6 py-4 flex items-center space-x-3">
+                                        <div class="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-500/20 text-brand-purple flex items-center justify-center font-bold text-xs">SF</div>
+                                        <span class="font-semibold">Sana Fatima</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">#ORD-1025</td>
+                                    <td class="px-6 py-4 font-bold">$840</td>
+                                    <td class="px-6 py-4"><span class="text-xs font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-500/10 px-2 py-1 rounded-full">Pending</span></td>
+                                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">Oct 24, 2024</td>
+                                </tr>
+                                <tr class="table-row">
+                                    <td class="px-6 py-4 flex items-center space-x-3">
+                                        <div class="w-9 h-9 rounded-full bg-pink-100 dark:bg-pink-500/20 text-brand-pink flex items-center justify-center font-bold text-xs">HK</div>
+                                        <span class="font-semibold">Hamza Khan</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">#ORD-1026</td>
+                                    <td class="px-6 py-4 font-bold">$2,100</td>
+                                    <td class="px-6 py-4"><span class="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/10 px-2 py-1 rounded-full">Completed</span></td>
+                                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">Oct 23, 2024</td>
+                                </tr>
+                                <tr class="table-row">
+                                    <td class="px-6 py-4 flex items-center space-x-3">
+                                        <div class="w-9 h-9 rounded-full bg-green-100 dark:bg-green-500/20 text-brand-green flex items-center justify-center font-bold text-xs">ZA</div>
+                                        <span class="font-semibold">Zara Ahmed</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">#ORD-1027</td>
+                                    <td class="px-6 py-4 font-bold">$320</td>
+                                    <td class="px-6 py-4"><span class="text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded-full">Cancelled</span></td>
+                                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">Oct 23, 2024</td>
+                                </tr>
+                                <tr class="table-row">
+                                    <td class="px-6 py-4 flex items-center space-x-3">
+                                        <div class="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-500 flex items-center justify-center font-bold text-xs">UR</div>
+                                        <span class="font-semibold">Usman Raza</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">#ORD-1028</td>
+                                    <td class="px-6 py-4 font-bold">$1,890</td>
+                                    <td class="px-6 py-4"><span class="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/10 px-2 py-1 rounded-full">Completed</span></td>
+                                    <td class="px-6 py-4 text-slate-500 dark:text-slate-400">Oct 22, 2024</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Top Products -->
+                <div class="bg-white dark:bg-brand-card rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-fade-up delay-600 hover-card p-6">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="font-bold text-lg heading-shadow">Top Products</h3>
+                        <a href="#" class="text-sm font-semibold text-brand-blue hover:underline">See All</a>
+                    </div>
+                    <div class="space-y-4">
+                        <!-- Product 1 -->
+                        <div class="flex items-center space-x-3 group">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold flex-shrink-0 group-hover:scale-110 transition">01</div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-sm truncate">Wireless Headphones</p>
+                                <p class="text-xs text-slate-400">Electronics · 1,240 sold</p>
+                            </div>
+                            <p class="font-bold text-sm">$12.4K</p>
+                        </div>
+                        <!-- Product 2 -->
+                        <div class="flex items-center space-x-3 group">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0 group-hover:scale-110 transition">02</div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-sm truncate">Smart Watch Pro</p>
+                                <p class="text-xs text-slate-400">Gadgets · 980 sold</p>
+                            </div>
+                            <p class="font-bold text-sm">$9.8K</p>
+                        </div>
+                        <!-- Product 3 -->
+                        <div class="flex items-center space-x-3 group">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center text-white font-bold flex-shrink-0 group-hover:scale-110 transition">03</div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-sm truncate">Gaming Mouse RGB</p>
+                                <p class="text-xs text-slate-400">Accessories · 760 sold</p>
+                            </div>
+                            <p class="font-bold text-sm">$7.2K</p>
+                        </div>
+                        <!-- Product 4 -->
+                        <div class="flex items-center space-x-3 group">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold flex-shrink-0 group-hover:scale-110 transition">04</div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-sm truncate">USB-C Hub 7-in-1</p>
+                                <p class="text-xs text-slate-400">Accessories · 640 sold</p>
+                            </div>
+                            <p class="font-bold text-sm">$5.9K</p>
+                        </div>
+                        <!-- Product 5 -->
+                        <div class="flex items-center space-x-3 group">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold flex-shrink-0 group-hover:scale-110 transition">05</div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-sm truncate">Mechanical Keyboard</p>
+                                <p class="text-xs text-slate-400">Electronics · 520 sold</p>
+                            </div>
+                            <p class="font-bold text-sm">$4.6K</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTIVITY + TEAM ROW -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Activity Feed -->
+                <div class="bg-white dark:bg-brand-card rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-fade-up delay-600 hover-card p-6">
+                    <h3 class="font-bold text-lg mb-5 heading-shadow">Recent Activity</h3>
+                    <div class="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-[9px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-700">
+                        <div class="relative">
+                            <span class="absolute -left-[22px] top-1 w-3 h-3 rounded-full bg-brand-blue ring-4 ring-white dark:ring-brand-card"></span>
+                            <p class="text-sm font-semibold">New order #ORD-1028</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Usman Raza placed an order worth $1,890</p>
+                            <p class="text-[10px] text-slate-400 mt-1">2 minutes ago</p>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute -left-[22px] top-1 w-3 h-3 rounded-full bg-brand-green ring-4 ring-white dark:ring-brand-card"></span>
+                            <p class="text-sm font-semibold">Payment received</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Sana Fatima paid $840 via Stripe</p>
+                            <p class="text-[10px] text-slate-400 mt-1">15 minutes ago</p>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute -left-[22px] top-1 w-3 h-3 rounded-full bg-brand-purple ring-4 ring-white dark:ring-brand-card"></span>
+                            <p class="text-sm font-semibold">New product added</p>
+                            <p class="text-xs text-slate-400 mt-0.5">"Smart Watch Pro" added to catalog</p>
+                            <p class="text-[10px] text-slate-400 mt-1">1 hour ago</p>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute -left-[22px] top-1 w-3 h-3 rounded-full bg-brand-pink ring-4 ring-white dark:ring-brand-card"></span>
+                            <p class="text-sm font-semibold">Refund requested</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Zara Ahmed requested a refund of $320</p>
+                            <p class="text-[10px] text-slate-400 mt-1">3 hours ago</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Performance -->
+                <div class="bg-white dark:bg-brand-card rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-fade-up delay-600 hover-card p-6">
+                    <h3 class="font-bold text-lg mb-5 heading-shadow">Team Performance</h3>
+                    <div class="space-y-5">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1.5"><span class="font-semibold">Ali Mehmood</span><span class="text-slate-400">92%</span></div>
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2"><div class="bar-fill bg-brand-blue h-2 rounded-full" data-width="92%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1.5"><span class="font-semibold">Sana Fatima</span><span class="text-slate-400">87%</span></div>
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2"><div class="bar-fill bg-brand-purple h-2 rounded-full" data-width="87%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1.5"><span class="font-semibold">Hamza Khan</span><span class="text-slate-400">78%</span></div>
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2"><div class="bar-fill bg-brand-pink h-2 rounded-full" data-width="78%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1.5"><span class="font-semibold">Zara Ahmed</span><span class="text-slate-400">65%</span></div>
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2"><div class="bar-fill bg-brand-green h-2 rounded-full" data-width="65%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1.5"><span class="font-semibold">Usman Raza</span><span class="text-slate-400">58%</span></div>
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2"><div class="bar-fill bg-yellow-500 h-2 rounded-full" data-width="58%"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white dark:bg-brand-card rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-fade-up delay-700 hover-card p-6">
+                    <h3 class="font-bold text-lg mb-5 heading-shadow">Quick Actions</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button class="flex flex-col items-center justify-center p-4 rounded-xl bg-blue-50 dark:bg-brand-blue/10 hover:bg-blue-100 dark:hover:bg-brand-blue/20 transition group">
+                            <svg class="w-6 h-6 text-brand-blue mb-2 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                            <span class="text-xs font-semibold">Add Product</span>
+                        </button>
+                        <button class="flex flex-col items-center justify-center p-4 rounded-xl bg-purple-50 dark:bg-brand-purple/10 hover:bg-purple-100 dark:hover:bg-brand-purple/20 transition group">
+                            <svg class="w-6 h-6 text-brand-purple mb-2 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span class="text-xs font-semibold">New Invoice</span>
+                        </button>
+                        <button class="flex flex-col items-center justify-center p-4 rounded-xl bg-pink-50 dark:bg-brand-pink/10 hover:bg-pink-100 dark:hover:bg-brand-pink/20 transition group">
+                            <svg class="w-6 h-6 text-brand-pink mb-2 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <span class="text-xs font-semibold">Add User</span>
+                        </button>
+                        <button class="flex flex-col items-center justify-center p-4 rounded-xl bg-green-50 dark:bg-brand-green/10 hover:bg-green-100 dark:hover:bg-brand-green/20 transition group">
+                            <svg class="w-6 h-6 text-brand-green mb-2 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span class="text-xs font-semibold">Reports</span>
+                        </button>
+                    </div>
+                    <div class="mt-5 p-4 rounded-xl bg-gradient-to-r from-brand-blue/10 to-brand-purple/10 border border-brand-blue/20">
+                        <p class="text-xs font-semibold text-brand-blue"> Pro Tip </p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Export your monthly report to track growth easily.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <footer class="pt-6 pb-2 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 animate-fade-up delay-700">
+                <p>© 2024 <span class="font-bold text-brand-blue">Maxton</span> Admin Suite. All rights reserved.</p>
+                <p class="mt-2 sm:mt-0"> Crafted with for Zarah Rizvi </p>
+            </footer>
+
+        </div>
+    </main>
+</div>
+
+<!-- ================= JAVASCRIPT ================= -->
+<script>
+    // THEME TOGGLE
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    if (localStorage.getItem('theme') === 'light') {
+        html.classList.remove('dark');
+        themeToggle.checked = true;
+    } else {
+        html.classList.add('dark');
+    }
+
+    themeToggle.addEventListener('change', () => {
+        if (themeToggle.checked) {
+            html.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        } else {
+            html.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        }
+        // Update chart colors on theme change
+        setTimeout(updateChartsTheme, 50);
+    });
+
+    // PROGRESS BAR ANIMATION (on load)
+    window.addEventListener('load', () => {
+        document.querySelectorAll('.bar-fill').forEach(bar => {
+            bar.style.width = bar.getAttribute('data-width');
+        });
+    });
+
+    // CHART.JS SETUP
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.animation.duration = 2000;
+    Chart.defaults.animation.easing = 'easeOutQuart';
+
+    const isDark = () => html.classList.contains('dark');
+    const textColor = () => isDark() ? '#94a3b8' : '#64748b';
+
+    let charts = {};
+
+    function initCharts() {
+        // Line Top
+        const lineTopCtx = document.getElementById('lineChartTop').getContext('2d');
+        let gradTop = lineTopCtx.createLinearGradient(0,0,0,60);
+        gradTop.addColorStop(0,'rgba(16,185,129,0.45)');
+        gradTop.addColorStop(1,'rgba(16,185,129,0)');
+        charts.lineTop = new Chart(lineTopCtx, {
+            type:'line',
+            data:{ labels:['Jan','Feb','Mar','Apr','May','Jun'],
+                datasets:[{data:[10,25,15,35,20,40],borderColor:'#10B981',backgroundColor:gradTop,borderWidth:2,tension:.4,fill:true,pointRadius:0}]},
+            options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}
+        });
+
+        // Bar Small
+        const barSmallCtx = document.getElementById('barChartSmall').getContext('2d');
+        charts.barSmall = new Chart(barSmallCtx, {
+            type:'bar',
+            data:{labels:['1','2','3','4','5','6','7'],
+                datasets:[{data:[10,30,20,45,25,50,35],backgroundColor:'#8B5CF6',borderRadius:4,barThickness:7}]},
+            options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}
+        });
+
+        // Line Bottom
+        const lineBottomCtx = document.getElementById('lineChartBottom').getContext('2d');
+        charts.lineBottom = new Chart(lineBottomCtx, {
+            type:'line',
+            data:{labels:['1','2','3','4','5','6'],
+                datasets:[{data:[15,25,20,40,30,45],borderColor:'#F43F5E',borderWidth:2,tension:.4,pointBackgroundColor:'#F43F5E',pointRadius:2.5,pointHoverRadius:5}]},
+            options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}
+        });
+
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        charts.revenue = new Chart(revenueCtx, {
+            type:'bar',
+            data:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'],
+                datasets:[{data:[20,35,25,50,30,45,25,55,40],backgroundColor:'#3B82F6',borderRadius:6,barThickness:14}]},
+            options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+                scales:{x:{grid:{display:false},ticks:{color:textColor(),font:{size:10}}},y:{display:false,beginAtZero:true}}}
+        });
+
+        // Device Chart
+        const deviceCtx = document.getElementById('deviceChart').getContext('2d');
+        charts.device = new Chart(deviceCtx, {
+            type:'doughnut',
+            data:{labels:['Desktop','Mobile','Tablet'],
+                datasets:[{data:[45,35,20],backgroundColor:['#3B82F6','#F43F5E','#10B981'],borderWidth:0,cutout:'75%',borderRadius:5}]},
+            options:{responsive:true,maintainAspectRatio:false,
+                plugins:{legend:{position:'bottom',labels:{color:textColor(),usePointStyle:true,boxWidth:8,padding:20}}}}
+        });
+    }
+
+    function updateChartsTheme() {
+        const tc = textColor();
+        if (charts.revenue) {
+            charts.revenue.options.scales.x.ticks.color = tc;
+            charts.revenue.update('none');
+        }
+        if (charts.device) {
+            charts.device.options.plugins.legend.labels.color = tc;
+            charts.device.update('none');
+        }
+    }
+
+    window.addEventListener('load', initCharts);
+</script>
+</body>
+</html>
